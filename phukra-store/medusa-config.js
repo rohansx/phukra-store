@@ -17,10 +17,9 @@ switch (process.env.NODE_ENV) {
     break;
 }
 
-try {
-  dotenv.config({ path: process.cwd() + "/" + ENV_FILE_NAME });
-} catch (e) {}
+dotenv.config({ path: process.cwd() + "/" + ENV_FILE_NAME });
 
+console.log("REDIS_URL:", process.env.REDIS_URL);
 // CORS when consuming Medusa from admin
 const ADMIN_CORS =
   process.env.ADMIN_CORS || "http://localhost:7000,http://localhost:7001";
@@ -30,7 +29,6 @@ const STORE_CORS = process.env.STORE_CORS || "http://localhost:8000";
 
 const DATABASE_URL =
   process.env.DATABASE_URL || "postgres://localhost/medusa-starter-default";
-
 const REDIS_URL = process.env.REDIS_URL || "redis://localhost:6379";
 
 const plugins = [
@@ -44,7 +42,6 @@ const plugins = [
   },
   {
     resolve: "@medusajs/admin",
-    /** @type {import('@medusajs/admin').PluginOptions} */
     options: {
       autoRebuild: true,
       develop: {
@@ -55,48 +52,35 @@ const plugins = [
 ];
 
 const modules = {
-  /*eventBus: {
+  // Uncomment these lines to enable REDIS
+  eventBus: {
     resolve: "@medusajs/event-bus-redis",
     options: {
-      redisUrl: REDIS_URL
-    }
+      redisUrl: REDIS_URL,
+    },
   },
   cacheService: {
     resolve: "@medusajs/cache-redis",
     options: {
-      redisUrl: REDIS_URL
-    }
-  },*/
+      redisUrl: REDIS_URL,
+    },
+  },
 };
 
-/** @type {import('@medusajs/medusa').ConfigModule["projectConfig"]} */
 const projectConfig = {
   jwt_secret: process.env.JWT_SECRET || "supersecret",
   cookie_secret: process.env.COOKIE_SECRET || "supersecret",
   store_cors: STORE_CORS,
   database_url: DATABASE_URL,
   admin_cors: ADMIN_CORS,
-  // Uncomment the following lines to enable REDIS
-  // redis_url: REDIS_URL
+  database_extra:
+    process.env.NODE_ENV !== "development"
+      ? { ssl: { rejectUnauthorized: false } }
+      : {},
 };
 
-/** @type {import('@medusajs/medusa').ConfigModule} */
 module.exports = {
   projectConfig,
   plugins,
   modules,
-};
-
-module.exports = {
-  projectConfig: {
-    // ...
-    database_extra:
-      process.env.NODE_ENV !== "development"
-        ? {
-            ssl: {
-              rejectUnauthorized: false,
-            },
-          }
-        : {},
-  },
 };
